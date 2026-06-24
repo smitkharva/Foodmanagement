@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -7,7 +7,7 @@ import { Heart, Eye, EyeOff, ArrowRight, User, Mail, Phone, Lock, Building2, Che
 import toast from 'react-hot-toast';
 import { authAPI } from '@/lib/api';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
@@ -15,10 +15,17 @@ export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const [form, setForm] = useState({
     name: '', email: '', phone: '', password: '',
-    role: searchParams.get('role') || 'donor',
+    role: 'donor',
     organization: '', donorType: 'restaurant',
     ngoName: '', ngoRegNumber: '',
   });
+
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam) {
+      setForm(prev => ({ ...prev, role: roleParam }));
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -158,5 +165,17 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', background: '#070d1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#22c55e', fontSize: '18px', fontWeight: 600 }}>Loading Registration...</div>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }
