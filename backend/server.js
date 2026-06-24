@@ -55,15 +55,21 @@ io.on('connection', (socket) => {
 });
 
 // MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('✅ MongoDB connected');
-    server.listen(process.env.PORT || 5000, () => {
-      console.log(`🚀 FoodBridge server running on port ${process.env.PORT || 5000}`);
+if (process.env.NODE_ENV !== 'test') {
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => {
+      console.log('✅ MongoDB connected');
+      // Only listen if not in a serverless environment (like Vercel)
+      if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+        server.listen(process.env.PORT || 5000, () => {
+          console.log(`🚀 FoodBridge server running on port ${process.env.PORT || 5000}`);
+        });
+      }
+    })
+    .catch((err) => {
+      console.error('❌ MongoDB connection error:', err.message);
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1);
-  });
+}
+
+module.exports = app;
